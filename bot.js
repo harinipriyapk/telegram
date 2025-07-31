@@ -1,28 +1,40 @@
-// Import Telegram API package
+// Import the Telegram API package
 const TelegramBot = require('node-telegram-bot-api');
 
 // Replace this with your actual bot token from @BotFather
 const token = '8441975718:AAEy1l0j7j5-ehBA_JRtY86I1UEkxvjgnpc';
 
-// Create a bot that uses polling to fetch new updates
+// Create a bot with polling enabled
 const bot = new TelegramBot(token, { polling: true });
 
-// Handle the "/start" command
-bot.onText(/\/start/, (msg) => {
-  const chatId = msg.chat.id;
-  const firstName = msg.from.first_name;
+// Command handlers map for scalability
+const commandResponses = {
+  '/start': (msg) => {
+    const firstName = msg.from.first_name || 'Harini';
+    return `Hello ${firstName}! 👋 Welcome to our upgraded Telegram bot. Ready to explore?`;
+  },
+  '/help': () => {
+    return `🛠 Available commands:\n/start - Welcome message\n/help - Show this help menu\n/about - Know more about the bot`;
+  },
+  '/about': () => {
+    return `🤖 This bot is powered by Node.js and the Telegram Bot API. Designed to be modular, extendable, and super friendly!`;
+  }
+};
 
-  // Send a welcome message
-  bot.sendMessage(chatId, `Hello ${firstName || 'harini'}! 👋 Welcome to my Telegram bot built with Node.js.`);
+// Listen for any command defined in the commandResponses map
+bot.onText(/\/\w+/, (msg) => {
+  const chatId = msg.chat.id;
+  const command = msg.text.trim().toLowerCase();
+
+  const response = commandResponses[command];
+  if (response) {
+    bot.sendMessage(chatId, response(msg));
+  } else {
+    bot.sendMessage(chatId, `⚠️ Unknown command: ${command}\nType /help to see what’s available.`);
+  }
 });
 
-// Optional: Handle the "/help" command
-bot.onText(/\/help/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(chatId, "Here are the available commands:\n/start - Welcome message\n/help - Help menu");
-});
-
-// Log any message for debugging (optional)
+// Log all incoming messages (for debugging)
 bot.on('message', (msg) => {
-  console.log(`Received message from ${msg.from.username || msg.from.first_name}: ${msg.text}`);
+  console.log(`📩 Message received from ${msg.from.username || msg.from.first_name}: ${msg.text}`);
 });
